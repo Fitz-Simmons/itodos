@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue Todo</title>
+    <style>
+        .completed {
+            text-decoration: line-through;
+        }
+        .selected {
+            color: red;
+        }
+        .empty {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="todo-app">
+        <div>
+            <input type="button" value="全部标为完成"/>
+            <input type="text"
+                   v-bind:class='{empty: emptyChecked}'
+                   placeholder="添加 todo"
+                   v-model="NewTodoTitle"
+                   @keyup.enter="addTodo"/>
+            <span v-if="emptyChecked" style="color: red"># 请输入内容 #</span>
+        </div>
+        <ul>
+            <li v-for='todo in todos' :key='todo.id'>
+                <span>{{ todo.title }}</span>
+                <input type="button" value="标为完成">
+                <input type="button" value="删除">
+                <input type="text" value="编辑 todo..."/>
+            </li>
+        </ul>
+        <div>
+            <span>剩余3项未完成---</span>
+            <span>筛选：
+                <input type="button" class="selected" value="全部">
+                <input type="button" value="进行中">
+                <input type="button" value="已完成">
+                <input type="button" value="清除已完成">
+                <input type="button" value="清除全部">
+            </span>
+        </div>
+    </div>
+    <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
+    <script>
+        let id = 0;
+        var app = new Vue ({
+            el: '#todo-app',
+            data: function () {
+                return {
+                    todos: [],
+                    NewTodoTitle: '',
+                    checkEmpty: false
+                }
+            },
+            computed: {
+                emptyChecked: function () {
+                    return this.NewTodoTitle.length === 0 && this.checkEmpty;
+                }
+            },
+            methods: {
+                addTodo: function () {
+                    if (this.NewTodoTitle === '') {
+                        this.checkEmpty = true;
+                        return;
+                    }
+                    this.todos.push({id: id++, title: this.NewTodoTitle});
+                    this.NewTodoTitle = '';
+                    this.checkEmpty = false;
+                }
+            }
+        })
+    </script>
+</body>
+</html>
