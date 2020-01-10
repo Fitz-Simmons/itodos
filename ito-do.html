@@ -37,7 +37,9 @@
                        value="标为未完成"
                        v-if="todo.completed"
                        @click="markAsUnCompleted(todo)"/>
-                <input type="button" value="删除">
+                <input type="button"
+                       value="删除"
+                       @click="removeTodo(todo)"/>
                 <input type="text" value="编辑 todo..."/>
             </li>
         </ul>
@@ -84,6 +86,12 @@
                 },
                 markAsUnCompleted: function (todo) {
                     todo.completed = false;
+                },
+                removeTodo: function (todo) {
+                    if (!confirm('确认删除？')) {
+                        return;
+                    }
+                    this.todos.splice(this.todos.indexOf(todo), 1);
                 }
             }
         })
