@@ -28,7 +28,8 @@
         </div>
         <ul>
             <li v-for='todo in todos' :key='todo.id'>
-                <span :class="{completed: todo.completed}">{{ todo.title }}</span>
+                <span :class="{completed: todo.completed}"
+                      @dblclick="editTodo(todo)">{{ todo.title }}</span>
                 <input type="button" 
                        value="标为完成"
                        v-if="!todo.completed"
@@ -40,7 +41,12 @@
                 <input type="button"
                        value="删除"
                        @click="removeTodo(todo)"/>
-                <input type="text" value="编辑 todo..."/>
+                <input type="text"
+                       value="编辑 todo..."
+                       v-if="editedTodo !== null && editedTodo.id === todo.id"
+                       v-model="todo.title"
+                       @keyup.enter="editDone(todo)"
+                       @keyup.esc="cancelEdit(todo)"/>
             </li>
         </ul>
         <div>
@@ -63,7 +69,8 @@
                 return {
                     todos: [],
                     NewTodoTitle: '',
-                    checkEmpty: false
+                    checkEmpty: false,
+                    editedTodo: null
                 }
             },
             computed: {
@@ -92,6 +99,19 @@
                         return;
                     }
                     this.todos.splice(this.todos.indexOf(todo), 1);
+                },
+                editTodo: function (todo) {
+                    this.editedTodo = {id: todo.id, title: todo.title, completed: todo.completed};
+                },
+                editDone: function (todo) {
+                    if (todo.title === '') {
+                        this.removeTodo(todo);
+                    }
+                    this.editedTodo = null;
+                },
+                cancelEdit: function (todo) {
+                    todo.title = this.editedTodo.title;
+                    this.editedTodo = null;
                 }
             }
         })
