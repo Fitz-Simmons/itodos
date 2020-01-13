@@ -29,7 +29,7 @@
             <span v-if="emptyChecked" style="color: red"># 请输入内容 #</span>
         </div>
         <ul>
-            <li v-for='todo in todos' :key='todo.id'>
+            <li v-for='todo in filteredTodos' :key='todo.id'>
                 <span :class="{completed: todo.completed}"
                       @dblclick="editTodo(todo)">{{ todo.title }}</span>
                 <input type="button" 
@@ -55,9 +55,18 @@
         <div>
             <span>剩余 {{leftTodosCount}} 项未完成 ---</span>
             <span>筛选：
-                <input type="button" class="selected" value="全部">
-                <input type="button" value="进行中">
-                <input type="button" value="已完成">
+                <input type="button"
+                       value="全部"
+                       v-bind:class="{selected: intention==='all'}"
+                       @click="intention='all'"/>
+                <input type="button"
+                       value="进行中"
+                       v-bind:class="{selected: intention==='ongoing'}"
+                       @click="intention='ongoing'"/>
+                <input type="button"
+                       value="已完成"
+                       v-bind:class="{selected: intention==='finished'}"
+                       @click="intention='finished'"/>
                 <input type="button" value="清除已完成">
                 <input type="button" value="清除全部">
             </span>
@@ -73,7 +82,8 @@
                     todos: [],
                     NewTodoTitle: '',
                     checkEmpty: false,
-                    editedTodo: null
+                    editedTodo: null,
+                    intention: 'all'
                 }
             },
             computed: {
@@ -82,6 +92,17 @@
                 },
                 leftTodosCount: function () {
                     return this.todos.filter(todo => !todo.completed).length;
+                },
+                filteredTodos: function () {
+                    if (this.intention === 'ongoing') {
+                        return this.todos.filter(todo => !todo.completed);
+                    }
+                    else if (this.intention === 'finished') {
+                        return this.todos.filter(todo => todo.completed);
+                    }
+                    else {
+                        return this.todos;
+                    }
                 }
             },
             methods: {
