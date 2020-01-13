@@ -53,7 +53,7 @@
             </li>
         </ul>
         <div>
-            <span>剩余3项未完成---</span>
+            <span>剩余 {{leftTodosCount}} 项未完成 ---</span>
             <span>筛选：
                 <input type="button" class="selected" value="全部">
                 <input type="button" value="进行中">
@@ -79,6 +79,9 @@
             computed: {
                 emptyChecked: function () {
                     return this.NewTodoTitle.length === 0 && this.checkEmpty;
+                },
+                leftTodosCount: function () {
+                    return this.todos.filter(todo => !todo.completed).length;
                 }
             },
             methods: {
