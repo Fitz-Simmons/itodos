@@ -18,7 +18,8 @@
 <body>
     <div id="todo-app">
         <div>
-            <input type="button"
+            <input v-if="leftTodosCount"
+                   type="button"
                    value="全部标为完成"
                    @click="markAllAsCompleted"/>
             <input type="text"
@@ -40,7 +41,12 @@
                        value="标为未完成"
                        v-if="todo.completed"
                        @click="markAsUnCompleted(todo)"/>
-                <input type="button"
+                <input v-if="todo.removed"
+                       type="button"
+                       value="还原"
+                       @click="restoreTodo(todo)"/>
+                <input v-else="todo.removed"
+                       type="button"
                        value="删除"
                        @click="removeTodo(todo)"/>
                 <input type="text"
@@ -53,22 +59,35 @@
             </li>
         </ul>
         <div>
-            <span>剩余 {{leftTodosCount}} 项未完成 ---</span>
-            <span>筛选：
+            <span v-if="leftTodosCount">剩余 {{leftTodosCount}} 项未完成 ---</span>
+            <span v-else-if="completedTodosCount">全部完成！你真是太优秀了！</span>
+            <span v-else>添加你的第一项todo吧！</span>
+            <span v-if="todos.length">筛选：
                 <input type="button"
                        value="全部"
                        v-bind:class="{selected: intention==='all'}"
                        @click="intention='all'"/>
-                <input type="button"
+                <input v-if="leftTodosCount"
+                       type="button"
                        value="进行中"
                        v-bind:class="{selected: intention==='ongoing'}"
                        @click="intention='ongoing'"/>
-                <input type="button"
+                <input v-if="completedTodosCount"
+                       type="button"
                        value="已完成"
                        v-bind:class="{selected: intention==='finished'}"
                        @click="intention='finished'"/>
-                <input type="button" value="清除已完成">
-                <input type="button" value="清除全部">
+                <input v-if="completedTodosCount"
+                       type="button"
+                       value="清除已完成"
+                       @click="clearCompleted"/>
+                <input type="button"
+                       value="清除全部"
+                       @click="clearAll"/>
+                <input v-if="recycleBin.length"
+                       type="button"
+                       value="回收站"
+                       @click="intention='removed'"/>
             </span>
         </div>
     </div>
@@ -80,6 +99,7 @@
             data: function () {
                 return {
                     todos: [],
+                    recycleBin: [],
                     NewTodoTitle: '',
                     checkEmpty: false,
                     editedTodo: null,
@@ -90,15 +110,27 @@
                 emptyChecked: function () {
                     return this.NewTodoTitle.length === 0 && this.checkEmpty;
                 },
+                leftTodos: function () {
+                    return this.todos.filter(todo => !todo.completed);
+                },
                 leftTodosCount: function () {
-                    return this.todos.filter(todo => !todo.completed).length;
+                    return this.leftTodos.length;
+                },
+                completedTodos: function () {
+                    return this.todos.filter(todo => todo.completed);
+                },
+                completedTodosCount: function () {
+                    return this.completedTodos.length;
                 },
                 filteredTodos: function () {
                     if (this.intention === 'ongoing') {
-                        return this.todos.filter(todo => !todo.completed);
+                        return this.leftTodos;
                     }
                     else if (this.intention === 'finished') {
-                        return this.todos.filter(todo => todo.completed);
+                        return this.completedTodos;
+                    }
+                    else if (this.intention === 'removed') {
+                        return this.recycleBin;
                     }
                     else {
                         return this.todos;
@@ -111,7 +143,7 @@
                         this.checkEmpty = true;
                         return;
                     }
-                    this.todos.push({id: id++, title: this.NewTodoTitle, completed: false});
+                    this.todos.push({id: id++, title: this.NewTodoTitle, completed: false, removed: false});
                     this.NewTodoTitle = '';
                     this.checkEmpty = false;
                 },
@@ -128,11 +160,16 @@
                 markAsUnCompleted: function (todo) {
                     todo.completed = false;
                 },
+                restoreTodo: function (todo) {
+                    todo.removed = false;
+                    this.todos.unshift(todo);
+                    let pos = this.recycleBin.indexOf(todo);
+                    this.recycleBin.splice(pos, 1);
+                },
                 removeTodo: function (todo) {
-                    if (!confirm('确认删除？')) {
-                        return;
-                    }
-                    this.todos.splice(this.todos.indexOf(todo), 1);
+                    let removeTodo = this.todos.splice(this.todos.indexOf(todo), 1)[0];
+                    removeTodo.removed = true;
+                    this.recycleBin.unshift(removeTodo);
                 },
                 editTodo: function (todo) {
                     this.editedTodo = {id: todo.id, title: todo.title, completed: todo.completed};
@@ -146,6 +183,22 @@
                 cancelEdit: function (todo) {
                     todo.title = this.editedTodo.title;
                     this.editedTodo = null;
+                },
+                clearAll: function () {
+                    if (!confirm('确认清除全部待办事项？')) {
+                        return;
+                    }
+                    this.todos.map(todo => todo.removed = true);
+                    this.recycleBin.unshift(...this.todos);
+                    this.todos = [];
+                },
+                clearCompleted: function () {
+                    if (!confirm('确认清除全部已完成的待办事项？')) {
+                        return;
+                    }
+                    this.completedTodos.map(todo => todo.removed = true);
+                    this.recycleBin.unshift(...this.completedTodos);
+                    this.todos = this.leftTodos;
                 }
             },
             directives: {
