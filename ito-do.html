@@ -94,11 +94,25 @@
     <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
     <script>
         let id = 0;
+        var STORAGE_KEY = 'vue2.x-todo-tutorial';
+        var todoStorage = {
+            fetch: function () {
+                var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                todos.forEach(function (todo, index) {
+                    todo.id = index;
+                });
+                todoStorage.uid = todos.length;
+                return todos;
+            },
+            save: function (todos) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+            }
+        };
         var app = new Vue ({
             el: '#todo-app',
             data: function () {
                 return {
-                    todos: [],
+                    todos: todoStorage.fetch(),
                     recycleBin: [],
                     NewTodoTitle: '',
                     checkEmpty: false,
@@ -143,7 +157,7 @@
                         this.checkEmpty = true;
                         return;
                     }
-                    this.todos.push({id: id++, title: this.NewTodoTitle, completed: false, removed: false});
+                    this.todos.push({id: todoStorage.uid++, title: this.NewTodoTitle, completed: false, removed: false});
                     this.NewTodoTitle = '';
                     this.checkEmpty = false;
                 },
@@ -207,8 +221,16 @@
                         el.focus();
                     }
                 }
+            },
+            watch: {
+                todos: {
+                    handler: function (todos) {
+                        todoStorage.save(todos);
+                    },
+                    deep: true
+                }
             }
-        })
+        });
     </script>
 </body>
 </html>
