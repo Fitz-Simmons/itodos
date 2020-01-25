@@ -1,2 +1,2 @@
 # itodos
-Front-end Project Exercise
+To practice Vue.
